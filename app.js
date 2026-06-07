@@ -9,12 +9,17 @@ const elements = {
   checkoutButton: document.querySelector("#checkoutButton"),
   checkoutEmail: document.querySelector("#checkoutEmail"),
   checkoutNote: document.querySelector("#checkoutNote"),
+  copyActionsButton: document.querySelector("#copyActionsButton"),
   cleanCopy: document.querySelector("#cleanCopy"),
+  copyBriefButton: document.querySelector("#copyBriefButton"),
   copyButton: document.querySelector("#copyButton"),
+  copyMarkdownButton: document.querySelector("#copyMarkdownButton"),
   documentInput: document.querySelector("#documentInput"),
   finishOnboarding: document.querySelector("#finishOnboarding"),
+  clearButton: document.querySelector("#clearButton"),
   keywordsList: document.querySelector("#keywordsList"),
   onboardingModal: document.querySelector("#onboardingModal"),
+  pasteButton: document.querySelector("#pasteButton"),
   planLabel: document.querySelector("#planLabel"),
   pricingModal: document.querySelector("#pricingModal"),
   processButton: document.querySelector("#processButton"),
@@ -30,11 +35,15 @@ const elements = {
   toast: document.querySelector("#toast"),
   usageBadge: document.querySelector("#usageBadge"),
   usageBar: document.querySelector("#usageBar"),
-  usageText: document.querySelector("#usageText")
+  usageText: document.querySelector("#usageText"),
+  valueLine: document.querySelector("#valueLine"),
+  inputStats: document.querySelector("#inputStats"),
+  inputStatus: document.querySelector("#inputStatus")
 };
 
 let selectedMode = "quick";
 let latestCleanCopy = "";
+let latestResult = null;
 let appState = { plan: "free", briefsUsed: 0, freeLimit: 3, remaining: 3 };
 let appConfig = { auth: { configured: false, required: false }, payments: { configured: false } };
 let supabaseClient = null;
@@ -46,6 +55,23 @@ The current proposal is to launch with three core features: faster onboarding, a
 
 Next steps are to confirm the final launch date, send the pricing note to finance, prepare a customer email, review the legal language, and schedule a short internal training session for support. The main risks are legal approval, budget uncertainty for paid acquisition, and a possible delay if the onboarding issue is not fixed by Wednesday.`;
 
+const templateText = {
+  email: `Subject: Final review before launch
+
+Hi team, I read through the latest customer update and there are a few important points to resolve before we send it. The introduction is clear, but the pricing paragraph could confuse smaller customers. Support also needs a short list of likely questions so they can reply consistently.
+
+Next steps: confirm the final wording with finance, review the cancellation language, prepare a shorter version for sales, and send the approved email by Thursday afternoon. Main risks are unclear pricing, delayed legal review, and customers asking support questions before the team has the answer.`,
+  meeting: `Weekly operations meeting notes: The team agreed that onboarding delays are the biggest blocker for new customers. The product team will simplify the first setup screen, support will rewrite the help article, and sales will send three examples of confused customer replies.
+
+Action items: Maya will review the onboarding copy, Jordan will prepare the support article, Alex will confirm whether the reporting dashboard is ready for beta, and the team will meet again on Friday. Risks include unclear ownership, missing screenshots, and a possible delay if QA finds another setup bug.`,
+  proposal: `Client proposal draft: The client wants a lightweight reporting workflow for their remote team. The recommended approach is to start with a two-week setup sprint, build a simple dashboard, and train managers on weekly review habits. The proposal should emphasize faster reporting, fewer status meetings, and clearer accountability.
+
+Next steps are to confirm budget, choose the pilot team, prepare the kickoff agenda, and define success metrics. Risks include scope creep, missing data from the client, and adoption problems if managers do not use the dashboard consistently.`,
+  research: `Research notes: Several studies and field reports suggest that teams lose time when information is scattered across meeting notes, email threads, and project documents. The pattern is not just information overload; it is action ambiguity. People read the same material but leave with different assumptions about decisions, risks, and next steps.
+
+Useful takeaway: summaries are more valuable when they include explicit actions and unresolved risks. The limitation is that source quality matters. Messy notes can still hide missing context, unclear owners, or decisions that were never actually made.`
+};
+
 function showToast(message) {
   elements.toast.textContent = message;
   elements.toast.classList.remove("hidden");
@@ -55,7 +81,20 @@ function showToast(message) {
 
 function setLoading(isLoading) {
   elements.processButton.disabled = isLoading;
-  elements.processButton.textContent = isLoading ? "Generating..." : "Generate Brief";
+  elements.processButton.textContent = isLoading ? "Cleaning..." : "Clean this text";
+}
+
+function updateInputStats() {
+  const text = elements.documentInput.value.trim();
+  const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
+  elements.inputStats.textContent = `${words.toLocaleString()} words · ${text.length.toLocaleString()} characters`;
+  if (text.length >= 120) {
+    elements.inputStatus.textContent = "Ready to clean.";
+    elements.inputStatus.className = "font-semibold text-emerald-700";
+  } else {
+    elements.inputStatus.textContent = "Add at least 120 characters.";
+    elements.inputStatus.className = "";
+  }
 }
 
 function setMode(mode) {
@@ -117,6 +156,7 @@ function renderList(target, items) {
 }
 
 function renderResult(result) {
+  latestResult = result;
   latestCleanCopy = result.cleanCopy;
   elements.resultTitle.textContent = result.title;
   renderList(elements.summaryList, result.summary);
@@ -133,7 +173,35 @@ function renderResult(result) {
   elements.statWords.textContent = result.stats.estimatedWords.toLocaleString();
   elements.statChars.textContent = result.stats.characters.toLocaleString();
   elements.statCompression.textContent = `${result.stats.compressionRatio}%`;
+  const outputWords = result.cleanCopy ? result.cleanCopy.split(/\s+/).filter(Boolean).length : 0;
+  elements.valueLine.textContent = `Condensed ${result.stats.estimatedWords.toLocaleString()} words into a ${outputWords.toLocaleString()}-word working brief.`;
   elements.resultPanel.classList.remove("hidden");
+}
+
+function markdownBrief() {
+  if (!latestResult) return "";
+  return `# ${latestResult.title}
+
+## Summary
+${latestResult.summary.map((item) => `- ${item}`).join("\n")}
+
+## Action Items
+${latestResult.actions.map((item) => `- ${item}`).join("\n")}
+
+## Risks
+${latestResult.risks.map((item) => `- ${item}`).join("\n")}
+
+## Key Terms
+${latestResult.keywords.map((item) => `- ${item}`).join("\n")}
+
+## Clean Copy
+${latestResult.cleanCopy}`;
+}
+
+async function copyText(text, label) {
+  if (!text) return;
+  await navigator.clipboard.writeText(text);
+  showToast(`${label} copied.`);
 }
 
 async function loadConfig() {
@@ -329,30 +397,53 @@ function bindEvents() {
   elements.authSideButton.addEventListener("click", authButtonAction);
   elements.sendMagicLinkButton.addEventListener("click", sendMagicLink);
   elements.finishOnboarding.addEventListener("click", finishOnboarding);
+  elements.documentInput.addEventListener("input", updateInputStats);
   elements.processButton.addEventListener("click", processBrief);
   elements.sampleButton.addEventListener("click", () => {
     elements.documentInput.value = sampleText;
+    updateInputStats();
     showToast("Sample inserted.");
+  });
+  document.querySelectorAll("[data-template]").forEach((button) => {
+    button.addEventListener("click", () => {
+      elements.documentInput.value = templateText[button.dataset.template] || sampleText;
+      updateInputStats();
+      showToast(`${button.textContent.trim()} sample inserted.`);
+    });
+  });
+  elements.clearButton.addEventListener("click", () => {
+    elements.documentInput.value = "";
+    updateInputStats();
+    showToast("Input cleared.");
+  });
+  elements.pasteButton.addEventListener("click", async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text) return showToast("Clipboard is empty.");
+      elements.documentInput.value = text;
+      updateInputStats();
+      showToast("Clipboard pasted.");
+    } catch {
+      showToast("Paste permission was blocked by the browser.");
+    }
   });
   elements.checkoutButton.addEventListener("click", startCheckout);
   elements.copyButton.addEventListener("click", async () => {
-    if (!latestCleanCopy) return;
-    await navigator.clipboard.writeText(latestCleanCopy);
-    showToast("Clean version copied.");
+    await copyText(latestCleanCopy, "Clean version");
   });
+  elements.copyBriefButton.addEventListener("click", async () => copyText(markdownBrief(), "Brief"));
+  elements.copyActionsButton.addEventListener("click", async () => copyText(latestResult?.actions?.join("\n") || "", "Actions"));
+  elements.copyMarkdownButton.addEventListener("click", async () => copyText(markdownBrief(), "Markdown"));
 }
 
 async function boot() {
   bindEvents();
   setMode("quick");
+  updateInputStats();
   await loadConfig();
   await initAuth();
   await loadState();
   await verifyCheckoutReturn();
-
-  if (!localStorage.getItem("brieftidy_onboarded")) {
-    elements.onboardingModal.classList.remove("hidden");
-  }
 }
 
 boot();

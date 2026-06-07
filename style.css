@@ -2,6 +2,16 @@
   box-sizing: border-box;
 }
 
+:root {
+  --bt-ink: #171717;
+  --bt-muted: #6b7280;
+  --bt-line: #e5e7eb;
+  --bt-accent: #2563eb;
+  --bt-accent-soft: #eff6ff;
+  --bt-mint: #0f766e;
+  --bt-radius: 6px;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -20,6 +30,18 @@ body {
   padding: 10px;
   text-align: left;
   color: #374151;
+}
+
+.tool-button:focus-visible,
+.mode-chip:focus-visible,
+.template-chip:focus-visible,
+.icon-button:focus-visible,
+button:focus-visible,
+textarea:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.28);
+  outline-offset: 2px;
 }
 
 .tool-button:hover,
@@ -71,6 +93,22 @@ body {
   border-color: #2563eb;
   background: #eff6ff;
   color: #1d4ed8;
+}
+
+.template-chip {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 7px 10px;
+  color: #374151;
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.template-chip:hover {
+  border-color: #0f766e;
+  background: #f0fdfa;
+  color: #0f766e;
 }
 
 .output-block {
@@ -140,7 +178,8 @@ body {
   border-radius: 6px;
   border: 1px solid #e5e7eb;
   color: #374151;
-  font-size: 24px;
+  font-size: 22px;
+  font-weight: 600;
   line-height: 1;
 }
 
@@ -178,4 +217,41 @@ body {
 
 .hidden {
   display: none !important;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+@media (max-width: 1023px) {
+  nav[aria-label="Tools"] {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tool-button {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .tool-icon {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  header .text-xs {
+    display: none;
+  }
+
+  #usageBadge {
+    display: none !important;
+  }
+
+  #processButton {
+    width: 100%;
+    min-height: 46px;
+  }
 }

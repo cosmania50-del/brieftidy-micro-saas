@@ -38,7 +38,7 @@
             <div class="grid h-9 w-9 place-items-center rounded-md bg-ink text-sm font-semibold text-white">BT</div>
             <div>
               <p class="text-base font-semibold leading-none">BriefTidy</p>
-              <p class="mt-1 text-xs text-muted">Document clarity workspace</p>
+              <p class="mt-1 text-xs text-muted">Summaries, actions, risks</p>
             </div>
           </div>
 
@@ -95,10 +95,10 @@
           <div class="rounded-md border border-line bg-white p-4 shadow-soft">
             <div class="flex flex-col justify-between gap-3 border-b border-line pb-4 sm:flex-row sm:items-start">
               <div>
-                <h1 class="text-2xl font-semibold tracking-normal">Turn messy text into a clear brief.</h1>
+                <h1 class="text-2xl font-semibold tracking-normal">Find the summary, actions, and risks in any long text.</h1>
                 <p class="mt-2 max-w-2xl text-sm leading-6 text-muted">
-                  Paste a document, email thread, proposal, policy, or meeting note. BriefTidy returns the key points,
-                  action items, risks, keywords, and a clean copy-ready version.
+                  Paste an email thread, proposal, policy, meeting note, research excerpt, or client brief. BriefTidy
+                  returns the key points, action items, risks, key terms, and a clean copy-ready version.
                 </p>
               </div>
               <button id="sampleButton" class="rounded-md border border-line px-3 py-2 text-sm font-medium hover:bg-slate-50">
@@ -107,21 +107,40 @@
             </div>
 
             <div class="mt-4 grid gap-4">
-              <label class="text-sm font-medium" for="documentInput">Source text</label>
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <label class="text-sm font-medium" for="documentInput">Source text</label>
+                  <p class="mt-1 text-xs text-muted">Your pasted text is processed for this request and not stored.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <button class="template-chip" data-template="email">Email thread</button>
+                  <button class="template-chip" data-template="meeting">Meeting notes</button>
+                  <button class="template-chip" data-template="proposal">Proposal</button>
+                  <button class="template-chip" data-template="research">Research notes</button>
+                </div>
+              </div>
               <textarea
                 id="documentInput"
                 class="min-h-[280px] w-full resize-y rounded-md border border-line bg-white p-4 text-sm leading-6 outline-none transition focus:border-accent focus:ring-4 focus:ring-blue-100"
                 placeholder="Paste at least 120 characters from a document, meeting note, email, or brief..."
               ></textarea>
+              <div class="flex flex-col justify-between gap-2 rounded-md border border-line bg-slate-50 px-3 py-2 text-xs text-muted sm:flex-row sm:items-center">
+                <span id="inputStats">0 words · 0 characters</span>
+                <div class="flex flex-wrap gap-2">
+                  <button id="pasteButton" class="font-semibold text-neutral-700 hover:text-accent">Paste</button>
+                  <button id="clearButton" class="font-semibold text-neutral-700 hover:text-accent">Clear</button>
+                  <span id="inputStatus">Add at least 120 characters.</span>
+                </div>
+              </div>
 
               <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                 <div class="flex flex-wrap gap-2">
-                  <button class="mode-chip active" data-mode="quick">Quick</button>
-                  <button class="mode-chip" data-mode="deep">Deep</button>
-                  <button class="mode-chip" data-mode="email">Email</button>
+                  <button class="mode-chip active" data-mode="quick">Summarize</button>
+                  <button class="mode-chip" data-mode="deep">Find actions</button>
+                  <button class="mode-chip" data-mode="email">Draft reply</button>
                 </div>
                 <button id="processButton" class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-                  Generate Brief
+                  Clean this text
                 </button>
               </div>
             </div>
@@ -152,9 +171,23 @@
                 <ul id="risksList"></ul>
               </div>
               <div class="output-block">
-                <h3>Keywords</h3>
+                <h3>Key Terms</h3>
                 <div id="keywordsList" class="mt-3 flex flex-wrap gap-2"></div>
               </div>
+            </div>
+
+            <p id="valueLine" class="mt-4 rounded-md border border-blue-100 bg-blue-50 p-3 text-sm font-medium text-blue-900"></p>
+
+            <div class="mt-4 flex flex-wrap gap-2">
+              <button id="copyBriefButton" class="rounded-md border border-line px-3 py-2 text-sm font-medium hover:bg-slate-50">
+                Copy brief
+              </button>
+              <button id="copyActionsButton" class="rounded-md border border-line px-3 py-2 text-sm font-medium hover:bg-slate-50">
+                Copy actions
+              </button>
+              <button id="copyMarkdownButton" class="rounded-md border border-line px-3 py-2 text-sm font-medium hover:bg-slate-50">
+                Copy markdown
+              </button>
             </div>
 
             <div class="mt-4 rounded-md border border-line bg-slate-50 p-4">
@@ -170,7 +203,7 @@
             <p id="planLabel" class="mt-2 text-lg font-semibold">Free</p>
             <p id="authStatus" class="mt-1 text-sm text-muted">Login is loading.</p>
             <p class="mt-2 text-sm leading-6 text-muted">
-              Free includes 3 briefs. Pro unlocks unlimited briefs in this browser after Stripe Test Mode checkout.
+              Try 3 free briefs with your own text. Pro unlocks unlimited briefs and larger documents.
             </p>
             <button id="authSideButton" class="mt-4 w-full rounded-md border border-line px-3 py-2 text-sm font-semibold hover:bg-slate-50">
               Sign in with email
@@ -203,6 +236,9 @@
             <p class="mt-2 text-sm leading-6 text-muted">
               This no-cost version verifies login server-side, processes text only for the request, and does not store your document in a database.
             </p>
+            <p class="mt-3 text-sm leading-6 text-muted">
+              Works with pasted text in most languages. Output quality depends on the clarity of the source text.
+            </p>
           </div>
         </aside>
       </main>
@@ -215,7 +251,7 @@
             <p class="text-xs font-semibold uppercase tracking-wide text-muted">Welcome</p>
             <h2 class="mt-2 text-2xl font-semibold">Set up your briefing workspace.</h2>
           </div>
-          <button class="icon-button" data-close-onboarding aria-label="Close onboarding">x</button>
+          <button class="icon-button" data-close-onboarding aria-label="Close onboarding">&times;</button>
         </div>
 
         <div class="mt-5 grid gap-3">
@@ -250,19 +286,19 @@
           <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-muted">Pricing</p>
             <h2 class="mt-2 text-2xl font-semibold">Upgrade to BriefTidy Pro.</h2>
-            <p class="mt-2 text-sm text-muted">Stripe runs in Test Mode for this no-cost build.</p>
+            <p class="mt-2 text-sm text-muted">For people who clean up documents every week.</p>
           </div>
-          <button class="icon-button" data-close-pricing aria-label="Close pricing">x</button>
+          <button class="icon-button" data-close-pricing aria-label="Close pricing">&times;</button>
         </div>
 
         <div class="mt-6 grid gap-4 md:grid-cols-2">
           <div class="rounded-md border border-line p-4">
             <h3 class="text-lg font-semibold">Free</h3>
             <p class="mt-2 text-3xl font-semibold">$0</p>
-            <p class="mt-2 text-sm text-muted">For trying the workflow.</p>
+            <p class="mt-2 text-sm text-muted">3 free briefs to test with your own text.</p>
             <ul class="feature-list">
-              <li>3 total briefs</li>
-              <li>Quick, deep, and email modes</li>
+              <li>3 free briefs</li>
+              <li>Summary, actions, risks, and clean copy</li>
               <li>Copy-ready output</li>
             </ul>
           </div>
@@ -270,11 +306,11 @@
           <div class="rounded-md border-2 border-accent p-4">
             <h3 class="text-lg font-semibold">Pro</h3>
             <p class="mt-2 text-3xl font-semibold">$5 <span class="text-base font-medium text-muted">/ month</span></p>
-            <p class="mt-2 text-sm text-muted">For unlimited document cleanup.</p>
+            <p class="mt-2 text-sm text-muted">For repeat document cleanup and faster workflows.</p>
             <ul class="feature-list">
-              <li>Unlimited briefs in this browser</li>
+              <li>Unlimited briefs</li>
               <li>Larger text capacity</li>
-              <li>Server-verified Test Mode checkout</li>
+              <li>Faster repeat workflow</li>
             </ul>
             <input
               id="checkoutEmail"
@@ -283,10 +319,10 @@
               placeholder="Email for Stripe checkout"
             />
             <button id="checkoutButton" class="mt-3 w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-              Start Test Checkout
+              Upgrade to Pro
             </button>
             <p id="checkoutNote" class="mt-3 text-xs leading-5 text-muted">
-              Use Stripe test card 4242 4242 4242 4242. No real payment is made.
+              Secure checkout. Cancel anytime.
             </p>
           </div>
         </div>
@@ -303,7 +339,7 @@
               Enter your email and use the magic link sent to your inbox. No password is stored by BriefTidy.
             </p>
           </div>
-          <button class="icon-button" data-close-auth aria-label="Close login">x</button>
+          <button class="icon-button" data-close-auth aria-label="Close login">&times;</button>
         </div>
 
         <div class="mt-5 grid gap-3">
