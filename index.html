@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="BriefTidy turns messy documents, emails, notes, and briefs into clean summaries, action items, risks, and copy-ready outputs."
+    />
+    <title>BriefTidy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ink: "#171717",
+              muted: "#6b7280",
+              line: "#e5e7eb",
+              paper: "#f8fafc",
+              accent: "#2563eb",
+              mint: "#0f766e"
+            },
+            boxShadow: {
+              soft: "0 12px 28px rgba(15, 23, 42, 0.08)"
+            }
+          }
+        }
+      };
+    </script>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body class="bg-paper text-ink">
+    <div class="min-h-screen">
+      <header class="sticky top-0 z-30 border-b border-line bg-white/92 backdrop-blur">
+        <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+          <div class="flex items-center gap-3">
+            <div class="grid h-9 w-9 place-items-center rounded-md bg-ink text-sm font-semibold text-white">BT</div>
+            <div>
+              <p class="text-base font-semibold leading-none">BriefTidy</p>
+              <p class="mt-1 text-xs text-muted">Document clarity workspace</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span id="usageBadge" class="hidden rounded-md border border-line bg-white px-3 py-2 text-sm text-muted sm:inline-flex">
+              Loading usage
+            </span>
+            <button id="authButton" class="rounded-md border border-line px-3 py-2 text-sm font-medium hover:bg-slate-50">
+              Sign in
+            </button>
+            <button id="pricingTopButton" class="rounded-md bg-ink px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800">
+              Upgrade
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="mx-auto grid max-w-7xl gap-4 px-4 py-4 sm:px-6 lg:grid-cols-[220px_minmax(0,1fr)_280px]">
+        <aside class="rounded-md border border-line bg-white p-3 lg:min-h-[calc(100vh-96px)]">
+          <nav class="space-y-1" aria-label="Tools">
+            <button class="tool-button active" data-mode="quick">
+              <span class="tool-icon">Q</span>
+              <span>
+                <strong>Quick Brief</strong>
+                <small>Fast summary</small>
+              </span>
+            </button>
+            <button class="tool-button" data-mode="deep">
+              <span class="tool-icon">D</span>
+              <span>
+                <strong>Deep Brief</strong>
+                <small>More context</small>
+              </span>
+            </button>
+            <button class="tool-button" data-mode="email">
+              <span class="tool-icon">E</span>
+              <span>
+                <strong>Email Ready</strong>
+                <small>Clean response</small>
+              </span>
+            </button>
+          </nav>
+
+          <div class="mt-5 border-t border-line pt-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted">Free Plan</p>
+            <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+              <div id="usageBar" class="h-full w-0 rounded-full bg-accent transition-all"></div>
+            </div>
+            <p id="usageText" class="mt-2 text-sm text-muted">3 briefs included.</p>
+          </div>
+        </aside>
+
+        <section class="space-y-4">
+          <div class="rounded-md border border-line bg-white p-4 shadow-soft">
+            <div class="flex flex-col justify-between gap-3 border-b border-line pb-4 sm:flex-row sm:items-start">
+              <div>
+                <h1 class="text-2xl font-semibold tracking-normal">Turn messy text into a clear brief.</h1>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-muted">
+                  Paste a document, email thread, proposal, policy, or meeting note. BriefTidy returns the key points,
+                  action items, risks, keywords, and a clean copy-ready version.
+                </p>
+              </div>
+              <button id="sampleButton" class="rounded-md border border-line px-3 py-2 text-sm font-medium hover:bg-slate-50">
+                Insert Sample
+              </button>
+            </div>
+
+            <div class="mt-4 grid gap-4">
+              <label class="text-sm font-medium" for="documentInput">Source text</label>
+              <textarea
+                id="documentInput"
+                class="min-h-[280px] w-full resize-y rounded-md border border-line bg-white p-4 text-sm leading-6 outline-none transition focus:border-accent focus:ring-4 focus:ring-blue-100"
+                placeholder="Paste at least 120 characters from a document, meeting note, email, or brief..."
+              ></textarea>
+
+              <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                <div class="flex flex-wrap gap-2">
+                  <button class="mode-chip active" data-mode="quick">Quick</button>
+                  <button class="mode-chip" data-mode="deep">Deep</button>
+                  <button class="mode-chip" data-mode="email">Email</button>
+                </div>
+                <button id="processButton" class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                  Generate Brief
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="resultPanel" class="hidden rounded-md border border-line bg-white p-4 shadow-soft">
+            <div class="flex flex-col justify-between gap-3 border-b border-line pb-3 sm:flex-row sm:items-center">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-muted">Output</p>
+                <h2 id="resultTitle" class="mt-1 text-xl font-semibold">Brief</h2>
+              </div>
+              <button id="copyButton" class="rounded-md border border-line px-3 py-2 text-sm font-medium hover:bg-slate-50">
+                Copy Clean Version
+              </button>
+            </div>
+
+            <div class="mt-4 grid gap-4 xl:grid-cols-2">
+              <div class="output-block">
+                <h3>Summary</h3>
+                <ul id="summaryList"></ul>
+              </div>
+              <div class="output-block">
+                <h3>Action Items</h3>
+                <ul id="actionsList"></ul>
+              </div>
+              <div class="output-block">
+                <h3>Risks</h3>
+                <ul id="risksList"></ul>
+              </div>
+              <div class="output-block">
+                <h3>Keywords</h3>
+                <div id="keywordsList" class="mt-3 flex flex-wrap gap-2"></div>
+              </div>
+            </div>
+
+            <div class="mt-4 rounded-md border border-line bg-slate-50 p-4">
+              <h3 class="text-sm font-semibold">Clean Copy</h3>
+              <pre id="cleanCopy" class="mt-3 whitespace-pre-wrap text-sm leading-6 text-neutral-700"></pre>
+            </div>
+          </div>
+        </section>
+
+        <aside class="space-y-4">
+          <div class="rounded-md border border-line bg-white p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted">Account</p>
+            <p id="planLabel" class="mt-2 text-lg font-semibold">Free</p>
+            <p id="authStatus" class="mt-1 text-sm text-muted">Login is loading.</p>
+            <p class="mt-2 text-sm leading-6 text-muted">
+              Free includes 3 briefs. Pro unlocks unlimited briefs in this browser after Stripe Test Mode checkout.
+            </p>
+            <button id="authSideButton" class="mt-4 w-full rounded-md border border-line px-3 py-2 text-sm font-semibold hover:bg-slate-50">
+              Sign in with email
+            </button>
+            <button id="pricingSideButton" class="mt-4 w-full rounded-md bg-ink px-3 py-2 text-sm font-semibold text-white hover:bg-neutral-800">
+              View Pricing
+            </button>
+          </div>
+
+          <div class="rounded-md border border-line bg-white p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted">Output Stats</p>
+            <dl class="mt-3 space-y-3 text-sm">
+              <div class="flex justify-between gap-3">
+                <dt class="text-muted">Words</dt>
+                <dd id="statWords" class="font-medium">0</dd>
+              </div>
+              <div class="flex justify-between gap-3">
+                <dt class="text-muted">Characters</dt>
+                <dd id="statChars" class="font-medium">0</dd>
+              </div>
+              <div class="flex justify-between gap-3">
+                <dt class="text-muted">Compression</dt>
+                <dd id="statCompression" class="font-medium">0%</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="rounded-md border border-line bg-white p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted">Privacy</p>
+            <p class="mt-2 text-sm leading-6 text-muted">
+              This no-cost version verifies login server-side, processes text only for the request, and does not store your document in a database.
+            </p>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <div id="onboardingModal" class="modal-backdrop hidden">
+      <div class="modal-panel max-w-xl">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted">Welcome</p>
+            <h2 class="mt-2 text-2xl font-semibold">Set up your briefing workspace.</h2>
+          </div>
+          <button class="icon-button" data-close-onboarding aria-label="Close onboarding">x</button>
+        </div>
+
+        <div class="mt-5 grid gap-3">
+          <label class="text-sm font-medium" for="roleSelect">What do you usually work on?</label>
+          <select id="roleSelect" class="rounded-md border border-line px-3 py-2 text-sm">
+            <option>Client work</option>
+            <option>Research</option>
+            <option>Operations</option>
+            <option>Sales and proposals</option>
+            <option>Personal productivity</option>
+          </select>
+
+          <label class="mt-2 text-sm font-medium" for="goalSelect">Preferred output</label>
+          <select id="goalSelect" class="rounded-md border border-line px-3 py-2 text-sm">
+            <option>Short executive brief</option>
+            <option>Detailed action list</option>
+            <option>Email-ready summary</option>
+          </select>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+          <button id="finishOnboarding" class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+            Start Briefing
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="pricingModal" class="modal-backdrop hidden">
+      <div class="modal-panel max-w-4xl">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted">Pricing</p>
+            <h2 class="mt-2 text-2xl font-semibold">Upgrade to BriefTidy Pro.</h2>
+            <p class="mt-2 text-sm text-muted">Stripe runs in Test Mode for this no-cost build.</p>
+          </div>
+          <button class="icon-button" data-close-pricing aria-label="Close pricing">x</button>
+        </div>
+
+        <div class="mt-6 grid gap-4 md:grid-cols-2">
+          <div class="rounded-md border border-line p-4">
+            <h3 class="text-lg font-semibold">Free</h3>
+            <p class="mt-2 text-3xl font-semibold">$0</p>
+            <p class="mt-2 text-sm text-muted">For trying the workflow.</p>
+            <ul class="feature-list">
+              <li>3 total briefs</li>
+              <li>Quick, deep, and email modes</li>
+              <li>Copy-ready output</li>
+            </ul>
+          </div>
+
+          <div class="rounded-md border-2 border-accent p-4">
+            <h3 class="text-lg font-semibold">Pro</h3>
+            <p class="mt-2 text-3xl font-semibold">$5 <span class="text-base font-medium text-muted">/ month</span></p>
+            <p class="mt-2 text-sm text-muted">For unlimited document cleanup.</p>
+            <ul class="feature-list">
+              <li>Unlimited briefs in this browser</li>
+              <li>Larger text capacity</li>
+              <li>Server-verified Test Mode checkout</li>
+            </ul>
+            <input
+              id="checkoutEmail"
+              class="mt-4 w-full rounded-md border border-line px-3 py-2 text-sm"
+              type="email"
+              placeholder="Email for Stripe checkout"
+            />
+            <button id="checkoutButton" class="mt-3 w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+              Start Test Checkout
+            </button>
+            <p id="checkoutNote" class="mt-3 text-xs leading-5 text-muted">
+              Use Stripe test card 4242 4242 4242 4242. No real payment is made.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="authModal" class="modal-backdrop hidden">
+      <div class="modal-panel max-w-md">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted">Login</p>
+            <h2 class="mt-2 text-2xl font-semibold">Sign in to BriefTidy.</h2>
+            <p class="mt-2 text-sm leading-6 text-muted">
+              Enter your email and use the magic link sent to your inbox. No password is stored by BriefTidy.
+            </p>
+          </div>
+          <button class="icon-button" data-close-auth aria-label="Close login">x</button>
+        </div>
+
+        <div class="mt-5 grid gap-3">
+          <label class="text-sm font-medium" for="authEmail">Email</label>
+          <input
+            id="authEmail"
+            class="rounded-md border border-line px-3 py-2 text-sm"
+            type="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+          />
+          <button id="sendMagicLinkButton" class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+            Send Magic Link
+          </button>
+          <p id="authNote" class="text-sm leading-6 text-muted">
+            Login is available after Supabase Free Auth is configured in deployment settings.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

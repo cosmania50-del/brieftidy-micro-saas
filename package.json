@@ -1,0 +1,13 @@
+{
+  "name": "BriefTidy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A zero-cost micro-SaaS document clarity tool with Stripe Test Mode checkout.",
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "node local-server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
