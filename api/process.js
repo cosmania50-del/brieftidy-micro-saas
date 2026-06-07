@@ -3,7 +3,7 @@ const { FREE_LIMIT, readBody } = require("./_gate");
 const { incrementUsage, readUsage } = require("./_store");
 
 const STOPWORDS = new Set(
-  "a an and are as at be by can for from has have if in into is it its of on or that the this to was were with you your we our they their i me my".split(
+  "a an and are as at be by can for from has have if in into is it its of on or that the this to was were with you your we our they their i me my will would should could again before after this that there here".split(
     " "
   )
 );
@@ -55,10 +55,19 @@ function rankSentences(text) {
 
 function extractActions(text) {
   const markers = /\b(todo|to do|next|action|follow up|follow-up|send|review|approve|decide|schedule|call|email|prepare|confirm|fix|launch)\b/i;
-  return sentences(text)
+  const found = sentences(text)
     .filter((sentence) => markers.test(sentence))
-    .slice(0, 6)
-    .map((sentence) => sentence.replace(/^[-*\d.)\s]+/, ""));
+    .flatMap((sentence) => {
+      const cleaned = sentence.replace(/^[-*\d.)\s]+/, "");
+      const afterMarker = cleaned.match(/(?:action items|next steps|todo|to do)\s*:\s*(.+)$/i);
+      if (!afterMarker) return [cleaned];
+      return afterMarker[1]
+        .split(/,\s+(?=[A-Z][a-z]+|\w+\s+will\b)|;\s+|\band\s+(?=[A-Z][a-z]+|\w+\s+will\b)/)
+        .map((item) => item.trim().replace(/\.$/, ""))
+        .filter((item) => item.length > 18);
+    });
+
+  return [...new Set(found)].slice(0, 6);
 }
 
 function extractRisks(text) {
