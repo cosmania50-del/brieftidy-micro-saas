@@ -4,7 +4,11 @@ const COOKIE_NAME = "BriefTidy_state";
 const FREE_LIMIT = 5;
 
 function appSecret() {
-  return process.env.APP_SECRET || "local-dev-BriefTidy-secret-change-me";
+  if (process.env.APP_SECRET) return process.env.APP_SECRET;
+  if (process.env.REQUIRE_AUTH === "true") {
+    throw new Error("APP_SECRET is required when REQUIRE_AUTH=true.");
+  }
+  return "local-dev-BriefTidy-secret-change-me";
 }
 
 function base64url(input) {

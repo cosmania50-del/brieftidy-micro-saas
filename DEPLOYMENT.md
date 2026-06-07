@@ -58,4 +58,4 @@ STRIPE_WEBHOOK_SECRET=<optional until webhook is added>
 2. Set `PUBLIC_APP_URL` to that URL.
 3. Add the same URL in Supabase Auth redirect URLs.
 4. Redeploy.
-5. Test login, generate 3 free briefs, then test Stripe checkout in Test Mode.
+5. Test login, generate 5 free briefs, then test Stripe checkout in Test Mode.
