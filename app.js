@@ -118,11 +118,14 @@ function updateState(next) {
 function updateAuthUi() {
   const email = currentSession?.user?.email || "";
   if (!appConfig.auth.configured) {
-    elements.authStatus.textContent = "Login is not configured yet.";
-    elements.authButton.textContent = "Sign in";
-    elements.authSideButton.textContent = "Sign in with email";
+    elements.authStatus.textContent = "No account needed for the free trial.";
+    elements.authButton.classList.add("hidden");
+    elements.authSideButton.classList.add("hidden");
     return;
   }
+
+  elements.authButton.classList.remove("hidden");
+  elements.authSideButton.classList.remove("hidden");
 
   if (email) {
     elements.authStatus.textContent = `Signed in as ${email}`;
@@ -174,7 +177,7 @@ function renderResult(result) {
   elements.statChars.textContent = result.stats.characters.toLocaleString();
   elements.statCompression.textContent = `${result.stats.compressionRatio}%`;
   const outputWords = result.cleanCopy ? result.cleanCopy.split(/\s+/).filter(Boolean).length : 0;
-  elements.valueLine.textContent = `Condensed ${result.stats.estimatedWords.toLocaleString()} words into a ${outputWords.toLocaleString()}-word working brief.`;
+  elements.valueLine.textContent = `Turned ${result.stats.estimatedWords.toLocaleString()} source words into a structured ${outputWords.toLocaleString()}-word working brief.`;
   elements.resultPanel.classList.remove("hidden");
 }
 
