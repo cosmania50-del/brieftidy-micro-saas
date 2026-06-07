@@ -17,6 +17,7 @@ const elements = {
   documentInput: document.querySelector("#documentInput"),
   finishOnboarding: document.querySelector("#finishOnboarding"),
   clearButton: document.querySelector("#clearButton"),
+  focusSelect: document.querySelector("#focusSelect"),
   keywordsList: document.querySelector("#keywordsList"),
   onboardingModal: document.querySelector("#onboardingModal"),
   pasteButton: document.querySelector("#pasteButton"),
@@ -33,6 +34,7 @@ const elements = {
   statWords: document.querySelector("#statWords"),
   summaryList: document.querySelector("#summaryList"),
   toast: document.querySelector("#toast"),
+  toneSelect: document.querySelector("#toneSelect"),
   usageBadge: document.querySelector("#usageBadge"),
   usageBar: document.querySelector("#usageBar"),
   usageText: document.querySelector("#usageText"),
@@ -44,7 +46,7 @@ const elements = {
 let selectedMode = "quick";
 let latestCleanCopy = "";
 let latestResult = null;
-let appState = { plan: "free", briefsUsed: 0, freeLimit: 3, remaining: 3 };
+let appState = { plan: "free", briefsUsed: 0, freeLimit: 5, remaining: 5 };
 let appConfig = { auth: { configured: false, required: false }, payments: { configured: false } };
 let supabaseClient = null;
 let currentSession = null;
@@ -87,7 +89,7 @@ function setLoading(isLoading) {
 function updateInputStats() {
   const text = elements.documentInput.value.trim();
   const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
-  elements.inputStats.textContent = `${words.toLocaleString()} words · ${text.length.toLocaleString()} characters`;
+  elements.inputStats.textContent = `${words.toLocaleString()} words / ${text.length.toLocaleString()} characters`;
   if (text.length >= 120) {
     elements.inputStatus.textContent = "Ready to clean.";
     elements.inputStatus.className = "font-semibold text-emerald-700";
@@ -261,7 +263,12 @@ async function processBrief() {
     const response = await fetch("/api/process", {
       method: "POST",
       headers: { "content-type": "application/json", ...authHeaders() },
-      body: JSON.stringify({ text, mode: selectedMode })
+      body: JSON.stringify({
+        text,
+        mode: selectedMode,
+        focus: elements.focusSelect?.value || "balanced",
+        tone: elements.toneSelect?.value || "neutral"
+      })
     });
     const data = await response.json();
     if (!response.ok) {
@@ -294,7 +301,7 @@ async function startCheckout() {
     });
     const data = await response.json();
     if (!response.ok) {
-      elements.checkoutNote.textContent = data.error || "Stripe Test Mode is not configured yet.";
+      elements.checkoutNote.textContent = data.error || "Checkout is not configured yet.";
       return;
     }
     window.location.href = data.url;
@@ -312,7 +319,7 @@ async function verifyCheckoutReturn() {
   if (!sessionId) return;
 
   if (!requireSessionForAction()) return;
-  showToast("Verifying Stripe Test Mode checkout...");
+  showToast("Verifying checkout...");
   try {
     const response = await fetch(`/api/checkout-status?session_id=${encodeURIComponent(sessionId)}`, {
       headers: authHeaders()
@@ -387,6 +394,11 @@ function finishOnboarding() {
 }
 
 function bindEvents() {
+  window.addEventListener("pointermove", (event) => {
+    document.body.style.setProperty("--cursor-x", `${event.clientX}px`);
+    document.body.style.setProperty("--cursor-y", `${event.clientY}px`);
+  });
+
   document.querySelectorAll("[data-mode]").forEach((button) => {
     button.addEventListener("click", () => setMode(button.dataset.mode));
   });

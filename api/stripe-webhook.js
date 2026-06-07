@@ -35,11 +35,11 @@ module.exports = async function handler(req, res) {
   }
 
   const accepted = new Set(["checkout.session.completed", "customer.subscription.deleted", "customer.subscription.updated"]);
-  if (event.livemode) return res.status(400).json({ error: "Live Stripe events are rejected in this no-cost build." });
+  if (event.livemode && process.env.ALLOW_STRIPE_LIVE !== "true") return res.status(400).json({ error: "Live Stripe events require ALLOW_STRIPE_LIVE=true." });
 
   return res.status(200).json({
     received: true,
     tracked: accepted.has(event.type),
-    note: "This no-cost build verifies webhooks but keeps subscription state in a signed browser cookie after checkout verification."
+    note: "Webhook received."
   });
 };

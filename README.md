@@ -75,4 +75,4 @@ BriefTidy stores only account metadata: plan, usage count, email, timestamps, an
 
 ## Free Plan
 
-The free plan allows 3 briefs per signed-in account when Supabase is configured. Pro is activated only after a valid Stripe Test Mode checkout is verified server-side for the same signed-in user.
+The free plan allows 5 briefs per signed-in account when Supabase is configured. Pro is activated only after a valid checkout is verified server-side for the same signed-in user.

@@ -18,13 +18,14 @@ module.exports = async function handler(req, res) {
 
   if (!secret || !price) {
     return res.status(503).json({
-      error: "Stripe Test Mode is not configured yet.",
+      error: "Checkout is not configured yet.",
       required: ["STRIPE_SECRET_KEY", "STRIPE_PRICE_ID", "APP_SECRET", "PUBLIC_APP_URL"]
     });
   }
 
-  if (!secret.startsWith("sk_test_")) {
-    return res.status(400).json({ error: "Only Stripe Test Mode keys are accepted in this no-cost build." });
+  const liveAllowed = process.env.ALLOW_STRIPE_LIVE === "true";
+  if (!secret.startsWith("sk_test_") && !liveAllowed) {
+    return res.status(400).json({ error: "Live Stripe keys require ALLOW_STRIPE_LIVE=true." });
   }
 
   if (!price.startsWith("price_")) {
@@ -36,8 +37,8 @@ module.exports = async function handler(req, res) {
   });
   const priceData = await priceResponse.json();
   if (!priceResponse.ok) return res.status(priceResponse.status).json({ error: priceData.error?.message || "Stripe price lookup failed." });
-  if (priceData.livemode || priceData.unit_amount !== 500 || priceData.currency !== "usd" || priceData.recurring?.interval !== "month") {
-    return res.status(400).json({ error: "Stripe price must be Test Mode, $5.00 USD, recurring monthly." });
+  if ((!liveAllowed && priceData.livemode) || priceData.unit_amount !== 500 || priceData.currency !== "usd" || priceData.recurring?.interval !== "month") {
+    return res.status(400).json({ error: "Stripe price must be $5.00 USD, recurring monthly, and test-mode unless live payments are explicitly enabled." });
   }
 
   const body = await readBody(req);

@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 
 const COOKIE_NAME = "BriefTidy_state";
-const FREE_LIMIT = 3;
+const FREE_LIMIT = 5;
 
 function appSecret() {
   return process.env.APP_SECRET || "local-dev-BriefTidy-secret-change-me";
