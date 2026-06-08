@@ -49,7 +49,6 @@ module.exports = async function handler(req, res) {
     cancel_url: `${origin}/cancel`,
     "line_items[0][price]": price,
     "line_items[0][quantity]": "1",
-    customer_creation: "always",
     customer_email: auth.user?.email || body.email || "",
     allow_promotion_codes: "false",
     "metadata[source]": "BriefTidy",
