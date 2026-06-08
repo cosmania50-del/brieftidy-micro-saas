@@ -50,13 +50,14 @@ module.exports = async function handler(req, res) {
     "line_items[0][price]": price,
     "line_items[0][quantity]": "1",
     customer_creation: "always",
-    client_reference_id: auth.user?.id || "",
     customer_email: auth.user?.email || body.email || "",
     allow_promotion_codes: "false",
     "metadata[source]": "BriefTidy",
     "metadata[user_id]": auth.user?.id || "",
     "metadata[email]": auth.user?.email || body.email || ""
   });
+
+  if (auth.user?.id) params.set("client_reference_id", auth.user.id);
 
   const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",
